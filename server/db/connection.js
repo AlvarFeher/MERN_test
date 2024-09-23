@@ -1,6 +1,6 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
 
-const uri = process.env.ATLAS_URI || "";
+const uri = "mongodb+srv://alvarofeherargullos:0mhHScrvVps8XnSR@cluster0.hxntb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -21,7 +21,7 @@ try {
   console.error(err);
 }
 
-let db = client.db("employees");
+let db = client.db("todos");
 
 export default db;
 
