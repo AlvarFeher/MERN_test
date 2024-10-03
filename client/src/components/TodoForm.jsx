@@ -3,39 +3,31 @@ import React, { useState } from "react";
 function TodoForm({ addTodo }) {
   const [input, setInput] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (input.trim()) {
-      addTodo(input);
-      setInput("");
-    }
-  };
+  const newTodo = { title: input, completed: false };
 
-  async function onSubmit(e) {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    const person = { ...form };
+
     try {
-      // if the id is present, we will set the URL to /record/:id, otherwise we will set the URL to /record.
-      const response = await fetch(`http://localhost:5050/todo${params.id ? "/"+params.id : ""}`, {
-        // if the id is present, we will use the PATCH method, otherwise we will use the POST method.
-        method: `${params.id ? "PATCH" : "POST"}`,
+      // Send a POST request to the server to add the new todo
+      const response = await fetch("http://localhost:5050/todos", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(person),
+        body: JSON.stringify(newTodo), // Send the form data as JSON
       });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+
+      const result = await response.json();
+      addTodo(result); // Add the new todo to the state in the parent component
+
+      // Reset the form after submission
+      setInput(""); // Reset input after submission
     } catch (error) {
-      console.error('A problem occurred with your fetch operation: ', error);
-    } finally {
-      setForm({ name: "", position: "", level: "" });
-      navigate("/");
+      console.error("Error creating todo:", error);
     }
-  }
-  
+  };
+
   return (
     <form onSubmit={onSubmit}>
       <input
@@ -43,6 +35,7 @@ function TodoForm({ addTodo }) {
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Add a new task"
+        required
       />
       <button type="submit">Add</button>
     </form>

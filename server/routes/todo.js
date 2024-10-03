@@ -1,80 +1,79 @@
 import express from "express";
+import Todo from "../models/Todo.js";  // Import the Todo model
 
-// This will help us connect to the database
-import db from "../db/connection.js";
-
-// This help convert the id from string to ObjectId for the _id.
-import { ObjectId } from "mongodb";
-
-// router is an instance of the express router.
-// We use it to define our routes.
-// The router will be added as a middleware and will take control of requests starting with path /record.
 const router = express.Router();
 
-// This section will help you get a list of all the records.
+// Get all todos
 router.get("/", async (req, res) => {
-  let collection = await db.collection("todos");
-  let results = await collection.find({}).toArray();
-  res.send(results).status(200);
-});
-
-// This section will help you get a single record by id
-router.get("/:id", async (req, res) => {
-  let collection = await db.collection("todos");
-  let query = { _id: new ObjectId(req.params.id) };
-  let result = await collection.findOne(query);
-
-  if (!result) res.send("Not found").status(404);
-  else res.send(result).status(200);
-});
-
-// This section will help you create a new record.
-router.post("/", async (req, res) => {
   try {
-    let newDocument = {
-      name: req.body.name,
-      position: req.body.position,
-      level: req.body.level,
-    };
-    let collection = await db.collection("todos");
-    let result = await collection.insertOne(newDocument);
-    res.send(result).status(204);
+    const todos = await Todo.find();  // Use Mongoose to find all todos
+    res.status(200).json(todos);
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error adding record");
+    res.status(500).send("Error retrieving todos");
   }
 });
 
-// This section will help you update a record by id.
+// Get a single todo by id
+router.get("/:id", async (req, res) => {
+  try {
+    const todo = await Todo.findById(req.params.id);  // Use Mongoose to find by id
+    if (!todo) {
+      return res.status(404).send("Todo not found");
+    }
+    res.status(200).json(todo);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error retrieving todo");
+  }
+});
+
+// Create a new todo
+router.post("/", async (req, res) => {
+  try {
+    const newTodo = new Todo({
+      title: req.body.title,
+      description: req.body.description,
+      done: req.body.done,
+    });
+    const savedTodo = await newTodo.save();  // Save the new todo to MongoDB
+    res.status(201).json(savedTodo);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error creating todo");
+  }
+});
+
+// Update a todo by id
 router.patch("/:id", async (req, res) => {
   try {
-    const query = { _id: new ObjectId(req.params.id) };
-    const updates = {
-      $set: {
-        name: req.body.name,
-        position: req.body.position,
-        level: req.body.level,
+    const updatedTodo = await Todo.findByIdAndUpdate(
+      req.params.id,
+      {
+        title: req.body.title,
+        description: req.body.description,
+        done: req.body.done,
       },
-    };
-
-    let collection = await db.collection("todos");
-    let result = await collection.updateOne(query, updates);
-    res.send(result).status(200);
+      { new: true }  // Return the updated document
+    );
+    if (!updatedTodo) {
+      return res.status(404).send("Todo not found");
+    }
+    res.status(200).json(updatedTodo);
   } catch (err) {
     console.error(err);
     res.status(500).send("Error updating todo");
   }
 });
 
-// This section will help you delete a record
+// Delete a todo by id
 router.delete("/:id", async (req, res) => {
   try {
-    const query = { _id: new ObjectId(req.params.id) };
-
-    const collection = db.collection("todos");
-    let result = await collection.deleteOne(query);
-
-    res.send(result).status(200);
+    const deletedTodo = await Todo.findByIdAndDelete(req.params.id);
+    if (!deletedTodo) {
+      return res.status(404).send("Todo not found");
+    }
+    res.status(200).json({ message: "Todo deleted successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).send("Error deleting todo");
