@@ -31,13 +31,14 @@ function TodoForm({ addTodo }) {
   return (
     <form onSubmit={onSubmit}>
       <input
+      className="inputTodo"
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Add a new task"
         required
       />
-      <button type="submit">Add</button>
+      <button className="addTodo" type="submit">Add</button>
     </form>
   );
 }
