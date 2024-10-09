@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function TodoForm({ addTodo }) {
+function TodoForm({ listId, addTodo }) {
   const [input, setInput] = useState("");
 
   const newTodo = { title: input, completed: false };
